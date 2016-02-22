@@ -1,4 +1,3 @@
-//THIS IS A TEST!!!!!!!!!!!!!
 /**
  * @file quash.c
  *
@@ -78,7 +77,7 @@ int main(int argc, char** argv) {
   start();
   
   puts("Welcome to Quash!");
-  puts("Type \"exit\" to quit");
+  puts("Type \"exit\" or quit to quit");
 
   // Main execution loop
   while (is_running() && get_command(&cmd, stdin)) {
@@ -86,11 +85,48 @@ int main(int argc, char** argv) {
     // this while loop. It is just an example.
 
     // The commands should be parsed, then executed.
-    if (!strcmp(cmd.cmdstr, "exit"))
+    if (!strcmp(cmd.cmdstr, "exit") || !strcmp(cmd.cmdstr, "quit")) {
+      puts("Bye!");
       terminate(); // Exit Quash
-    else 
+    }
+    else if (!strcmp(cmd.cmdstr, "set")) {
+      //run set command which sets the value of a variable. Quash should support (at least)
+      //two built-in variables: PATH and HOME. PATH is used to record the paths to search
+      //for executables, while HOME points the user's home directory. PATH may contain multiple
+      //directories (separated by :) Ex: $set PATH=/usr/bin:/bin -> set the variable PATH to
+      //contain two directories, /user/bin and /bin. $ set HOME=/home/amir -> set the user's home
+      //directory as 'users/amir'
+    }
+    else if (!strcmp(cmd.cmdstr, "echo")) {
+      //prints the content of the PATH and HOME. Ex. $ echo $Path -> /usr/bin:/bin
+    }
+    else if (!strcmp(cmd.cmdstr, "cd")) {
+      //cd <dir> to change the current working directory to dir. If no argument is given, it 
+      //should change to the directory in the HOME environment variable. Ex: $ cd test -> 
+      //change the current working directory to ./test. $ cd -> change the current working 
+      //directory to $HOME
+    }
+    else if (!strcmp(cmd.cmdstr, "pwd")) {
+      //prints the absolute path of the current working directory. Ex: $ mkdir test $ cd test
+      //$ pwd -> prints /home/amir/test
+    }
+    else if (!strcmp(cmd.cmdstr, "jobs")) {
+      //should print all of the currently running background processes in the format: [JOBID] PID COMMAND
+      //where JOBID is a unique positive integer quash assigns to the job to identify it, PID is the
+      //PID of the child process used for the job, and COMMAND is the command used to invoke the job
+      //Ex: $ program 1 & $ program 2 & $ jobs [1] 2342 program1 [2] 2343 program2
+    }
+    //Need to implement I/O redirection. The '<' character is used to redirect the standard
+    //input from a file. The '>' character is used to redirect the standard output to a file. Ex:
+    //$ ls > 'a.txt'
+    //Need to implement the pipe command |. Ex: $ cat myprog.c | more
+    //Quash should support reading commands interactively (with a prompt) or reading a set of
+    //commands stored in a file that is redirected from standard input. Ex: $ ./quash < commands.txt
+    else {
       puts(cmd.cmdstr); // Echo the input string
+    }
   }
 
   return EXIT_SUCCESS;
 }
+
