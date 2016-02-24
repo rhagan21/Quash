@@ -64,6 +64,21 @@ bool get_command(command_t* cmd, FILE* in) {
     return false;
 }
 
+void set(command_t* cmd) {
+  char* param = getParameter(cmd);
+  while (param != NULL) {
+	printf(" %s/n", param);
+	param = strtok(NULL, " ");
+  }
+  //variable = value;
+}
+
+char* getParameter(command_t* cmd) {
+    char* param;
+    param = strtok(cmd -> cmdstr, " ");
+    return param;
+}
+
 /**
  * Quash entry point
  *
@@ -79,10 +94,18 @@ int main(int argc, char** argv) {
   puts("Welcome to Quash!");
   puts("Type \"exit\" or quit to quit");
 
+
   // Main execution loop
   while (is_running() && get_command(&cmd, stdin)) {
     // NOTE: I would not recommend keeping anything inside the body of
     // this while loop. It is just an example.
+
+    char* firstParam = getParameter(&cmd);
+    while (firstParam != NULL) {
+    	printf(" %s/n", firstParam);
+    	firstParam = strtok(NULL, " ");
+    }
+    printf(firstParam);
 
     // The commands should be parsed, then executed.
     if (!strcmp(cmd.cmdstr, "exit") || !strcmp(cmd.cmdstr, "quit")) {
@@ -90,6 +113,7 @@ int main(int argc, char** argv) {
       terminate(); // Exit Quash
     }
     else if (!strcmp(cmd.cmdstr, "set")) {
+      //set(&cmd);
       //run set command which sets the value of a variable. Quash should support (at least)
       //two built-in variables: PATH and HOME. PATH is used to record the paths to search
       //for executables, while HOME points the user's home directory. PATH may contain multiple
@@ -129,4 +153,5 @@ int main(int argc, char** argv) {
 
   return EXIT_SUCCESS;
 }
+
 
