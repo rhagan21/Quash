@@ -15,8 +15,6 @@
  * Specify the maximum number of characters accepted by the command string
  */
 #define MAX_COMMAND_LENGTH (1024)
-#define PATH ("/usr/bin:/bin")
-#define HOME ("/home/amir")
 
 /**
  * Holds information about a command.
@@ -54,8 +52,10 @@ void terminate();
  *  @return True if able to fill #command_t.cmdstr and false otherwise
  */
 bool get_command(command_t* cmd, FILE* in);
-void set(command_t* cmd);
+void set(char* var1, char* var2);
 char* getParameter(command_t * cmd);
 char* firstParam;
+char* PATH;
+char* HOME;
 
 #endif // QUASH_H

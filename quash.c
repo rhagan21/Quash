@@ -64,19 +64,15 @@ bool get_command(command_t* cmd, FILE* in) {
     return false;
 }
 
-void set(command_t* cmd) {
-  char* param = getParameter(cmd);
-  while (param != NULL) {
-	printf(" %s/n", param);
-	param = strtok(NULL, " ");
+void set(char* var1, char* var2) {
+  if (!strcmp(var1, "PATH")) {
+	  PATH = var2;
   }
-  //variable = value;
-}
-
-char* getParameter(command_t* cmd) {
-    char* param;
-    param = strtok(cmd -> cmdstr, " ");
-    return param;
+  else if (!strcmp(var1, "HOME")){
+	  HOME = var2;
+  }
+  printf("%s\n", PATH);
+  printf("%s\n", HOME);
 }
 
 /**
@@ -92,28 +88,36 @@ int main(int argc, char** argv) {
   start();
   
   puts("Welcome to Quash!");
-  puts("Type \"exit\" or quit to quit");
+  puts("Type \"exit\" or \"quit\" to quit");
 
 
   // Main execution loop
   while (is_running() && get_command(&cmd, stdin)) {
-    // NOTE: I would not recommend keeping anything inside the body of
-    // this while loop. It is just an example.
 
-    char* firstParam = getParameter(&cmd);
-    while (firstParam != NULL) {
-    	printf(" %s/n", firstParam);
-    	firstParam = strtok(NULL, " ");
-    }
-    printf(firstParam);
+    char* args[100];
+	int i = 0;
+	char* tempArg = strtok(cmd.cmdstr, " \n");
+	int numOfArgs = 0;
+	int j;
+
+	while(tempArg) {
+		args[i++] = tempArg;
+		tempArg = strtok(NULL, " \n");
+		numOfArgs++;
+	}
+	for (j=0; j < numOfArgs; j++) {
+		printf(args[j]);
+	}
 
     // The commands should be parsed, then executed.
-    if (!strcmp(cmd.cmdstr, "exit") || !strcmp(cmd.cmdstr, "quit")) {
-      puts("Bye!");
+    if (!strcmp(args[0], "exit") || !strcmp(args[0], "quit")) {
+      puts("\nBye!");
       terminate(); // Exit Quash
     }
-    else if (!strcmp(cmd.cmdstr, "set")) {
-      //set(&cmd);
+    else if (!strcmp(args[0], "set")) {
+      char* var1 = strtok(args[1], "=");
+	  char* var2 = strtok(NULL, " \n");
+	  set(var1, var2);
       //run set command which sets the value of a variable. Quash should support (at least)
       //two built-in variables: PATH and HOME. PATH is used to record the paths to search
       //for executables, while HOME points the user's home directory. PATH may contain multiple
@@ -122,6 +126,15 @@ int main(int argc, char** argv) {
       //directory as 'users/amir'
     }
     else if (!strcmp(cmd.cmdstr, "echo")) {
+		if (!strcmp(args[1], "$PATH")) {
+			printf(PATH);
+		}
+		else if (!strcmp(args[1], "$HOME")) {
+			printf(HOME);
+		}
+		else {
+			puts("Please use either PATH or HOME for echo argument\n");
+		}
       //prints the content of the PATH and HOME. Ex. $ echo $Path -> /usr/bin:/bin
     }
     else if (!strcmp(cmd.cmdstr, "cd")) {
