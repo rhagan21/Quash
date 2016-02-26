@@ -10,6 +10,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include<stdlib.h>
+#include <limits.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <fcntl.h>
 
 /**
  * Specify the maximum number of characters accepted by the command string

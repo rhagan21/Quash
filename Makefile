@@ -5,7 +5,7 @@ CC = gcc --std=c99
 CFLAGS = -Wall -g -Og
 
 # Add files to their respective line to get this makefile to build them
-CFILES = quash.c
+FILES = quash.c 
 HFILES = quash.h debug.h
 
 # Add libraries that need linked as needed (e.g. -lm)
@@ -38,3 +38,6 @@ clean:
 	-rm -rf $(PROGNAME) *.o *~ doc
 
 .PHONY: clean
+
+testProg: 
+	g++ testProg.c -g -o testProg

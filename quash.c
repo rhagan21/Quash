@@ -24,6 +24,8 @@
 // to private in other languages.
 static bool running;
 
+extern char ** environ;
+
 /**************************************************************************
  * Private Functions 
  **************************************************************************/
@@ -37,6 +39,48 @@ static void start() {
 /**************************************************************************
  * Public Functions 
  **************************************************************************/
+ 
+ struct linkedList {
+	 struct linkedList *next;// = NULL;
+	 int pid;
+	 int jobid;
+	 char command[10000];
+ };
+ 
+ struct linkedList* listHead = NULL;
+ struct linkedList* listTail = NULL;
+ int jobidvar = 0;
+ 
+ void insert(struct linkedList* item) {
+	 if (listHead == NULL) {
+		 listHead = item;
+		 listTail = item;
+	 }
+	 else {
+		 listTail -> next = item;
+		 listTail = listTail -> next;
+	 }
+ }
+ 
+ void removeprocess(int value) {
+	 struct linkedList * current, * previous;
+	 current = listHead;
+	 previous = listHead;
+	 while(current != NULL) {
+		 if (current -> pid == value) {
+			 previous -> next = current -> next;
+			 free(current);
+		 }
+		 else {
+			 previous = current;
+			 current = current -> next;
+		 }
+	 }
+	 
+ }
+ 
+ 
+ 
 bool is_running() {
   return running;
 }
@@ -64,16 +108,6 @@ bool get_command(command_t* cmd, FILE* in) {
     return false;
 }
 
-void set(char* var1, char* var2) {
-  if (!strcmp(var1, "PATH")) {
-	  PATH = var2;
-  }
-  else if (!strcmp(var1, "HOME")){
-	  HOME = var2;
-  }
-  printf("%s\n", PATH);
-  printf("%s\n", HOME);
-}
 
 /**
  * Quash entry point
@@ -90,7 +124,82 @@ int main(int argc, char** argv) {
   puts("Welcome to Quash!");
   puts("Type \"exit\" or \"quit\" to quit");
 
+  	int pfdfg[2];
+	int pfdbg[2];
+	pipe(pfdfg);
+	pid_t pidfg, pidbg;
+	bool backProcess;
+	bool lastBackProcess = false;
+	char* tempProcess;
+	char* nextProcess;
+	
+	while(!backProcess) {
+		struct linkedList * newProcess = NULL;
+		
+		char input[10000];
+		if(fgets(input, 10000, stdin) == NULL) {
+			break;
+		}
+		
+		int isPipe = 0;
+		char* pipePosition = strchr(input, '|');
+		if (pipePosition != NULL) {
+			isPipe =1;
+		}
+		
+		int status;
+		int childpid;
+		while (childpid = waitpid(-1, &status, WNOHANG) > 0) {
+			removeprocess(childpid);
+		}
+		
+		if (strlen(input) == 1) {
+			continue;
+		}
+		
+		if (isPipe != 0) {
+			tempProcess = strtok(input, "|\n");
+			dup2(pfdbg[1], 1);
+			pidbg = fork();
+			if (pidbg == 0) {
+				close(pfdbg[0]);
+				dup2(pfdbg[1], 1);
+			}
+		}
+		
+		while(tempProcess){
+			if (isPipe != 0){
+				strcpy(input, tempProcess);
+				nextProcess = tempProcess;
+			}
+			if (nextProcess != NULL){
+				pidbg = fork();
+				if (pidbg!=0){
+					newProcess = (struct linkedList*) malloc(sizeof(struct linkedList));
+					newProcess->next = NULL;
+					newProcess->jobid = jobidvar;
+					jobidvar ++;
+					newProcess->pid=pidbg;
+					insert(newProcess);
+					strcpy(newProcess->command, tempProcess);
+					printf("[%s] New process %s running in background", newProcess->jobid, newProcess->pid);
+					tempProcess = nextProcess;
+					continue;
+				}
+				backProcess = true;
+			}
+			strcpy(input, tempProcess);
+			break;
+		}
+		
+		
+	}
+  
 
+	char arr[1024];
+	printf("[quash@");
+	printf(getcwd(arr, 1024));
+	printf("]$ ");
   // Main execution loop
   while (is_running() && get_command(&cmd, stdin)) {
 
@@ -98,26 +207,62 @@ int main(int argc, char** argv) {
 	int i = 0;
 	char* tempArg = strtok(cmd.cmdstr, " \n");
 	int numOfArgs = 0;
-	int j;
+	char* inputFile;
+	char* outputFile;
+	bool input = false;
+	bool output = false;
 
+
+	
 	while(tempArg) {
-		args[i++] = tempArg;
-		tempArg = strtok(NULL, " \n");
-		numOfArgs++;
+		if (!strcmp(tempArg, "<")) {
+			inputFile = strtok(NULL, " \n");
+			tempArg = inputFile;
+			numOfArgs++;
+			i++;
+			if (inputFile == NULL) {
+				printf("No input file specified");
+				exit(0);
+			}
+		}
+		else if (!strcmp(tempArg, ">")) {
+			outputFile = strtok(NULL, " \n");
+			tempArg = outputFile;
+			numOfArgs++;
+			i++;
+			if (outputFile == NULL) {
+				printf("No output file specified");
+				exit(0);
+			}
+		}
+		else {
+			args[i++] = tempArg;
+			tempArg = strtok(NULL, " \n");
+			numOfArgs++;
+		}
 	}
-	for (j=0; j < numOfArgs; j++) {
-		printf(args[j]);
-	}
+	
+	if (inputFile != NULL) {
+		open(inputFile, O_RDONLY | O_CREAT);
+		input = true;
+		dup2(inputFile, STDIN_FILENO);
 
+	}
+	else if (outputFile != NULL) {
+		open(outputFile, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		output = true;
+		dup2(outputFile, STDOUT_FILENO);
+	}
+	
     // The commands should be parsed, then executed.
     if (!strcmp(args[0], "exit") || !strcmp(args[0], "quit")) {
-      puts("\nBye!");
+	  puts("\nBye!");
       terminate(); // Exit Quash
     }
     else if (!strcmp(args[0], "set")) {
-      char* var1 = strtok(args[1], "=");
-	  char* var2 = strtok(NULL, " \n");
-	  set(var1, var2);
+        char* tokenizer = strtok(args[1], "=");
+        char* dirToSet = getenv(tokenizer);
+	    strcpy(dirToSet,strtok(NULL, "="));
       //run set command which sets the value of a variable. Quash should support (at least)
       //two built-in variables: PATH and HOME. PATH is used to record the paths to search
       //for executables, while HOME points the user's home directory. PATH may contain multiple
@@ -125,25 +270,36 @@ int main(int argc, char** argv) {
       //contain two directories, /user/bin and /bin. $ set HOME=/home/amir -> set the user's home
       //directory as 'users/amir'
     }
-    else if (!strcmp(cmd.cmdstr, "echo")) {
-		if (!strcmp(args[1], "$PATH")) {
-			printf(PATH);
-		}
-		else if (!strcmp(args[1], "$HOME")) {
-			printf(HOME);
-		}
-		else {
-			puts("Please use either PATH or HOME for echo argument\n");
-		}
-      //prints the content of the PATH and HOME. Ex. $ echo $Path -> /usr/bin:/bin
-    }
-    else if (!strcmp(cmd.cmdstr, "cd")) {
+    else if (!strcmp(args[0], "cd")) {
+        char *dirToEnter;
+		
+        if(numOfArgs == 1) {
+            dirToEnter = getenv("HOME");
+            chdir (dirToEnter);
+        }
+        else if(numOfArgs == 2) {
+            dirToEnter = args[1];
+            chdir (dirToEnter);	
+        }
+	}
       //cd <dir> to change the current working directory to dir. If no argument is given, it 
       //should change to the directory in the HOME environment variable. Ex: $ cd test -> 
       //change the current working directory to ./test. $ cd -> change the current working 
       //directory to $HOME
-    }
+	else if (!strcmp(args[0], "echo")) {
+		char* dirToPrint;
+		if (!strcmp(args[1], "$HOME")) {
+			dirToPrint = getenv("HOME");
+			printf(dirToPrint);
+		}
+		else if(!strcmp(args[1], "$PATH")) {
+			dirToPrint = getenv("PATH");
+			printf(dirToPrint);
+		}
+	}
     else if (!strcmp(cmd.cmdstr, "pwd")) {
+		char arr3[1024];
+		printf(getcwd(arr3, 1024));
       //prints the absolute path of the current working directory. Ex: $ mkdir test $ cd test
       //$ pwd -> prints /home/amir/test
     }
@@ -159,9 +315,56 @@ int main(int argc, char** argv) {
     //Need to implement the pipe command |. Ex: $ cat myprog.c | more
     //Quash should support reading commands interactively (with a prompt) or reading a set of
     //commands stored in a file that is redirected from standard input. Ex: $ ./quash < commands.txt
-    else {
-      puts(cmd.cmdstr); // Echo the input string
+	else {
+		pidfg = fork();
+		if(pidfg == 0){
+			int done = 0;
+			close(pfdfg[0]);
+			close(pfdfg[1]);
+			
+			char * tempEnv[10000];
+			strcpy(tempEnv, getenv("PATH"));
+			
+			char * tempPath = strtok(PATH, "\"");
+			printf(tempPath);
+			
+			if(access(args[0], F_OK)==0){
+				execvpe(args[0], args, environ);
+			}
+			while(tempPath){
+				char * tempExec[1024];
+				strcpy(tempExec, tempPath);
+				strcat(tempExec, "\"");
+				strcat(tempExec, args[0]);
+				if(access(tempExec, F_OK)==0){
+					execvpe(args[0], args, environ);
+					done = 1;
+					break;
+				}
+				tempPath = strtok(NULL, "\"");
+			}
+			if(done == 0) {
+				printf("Error!! File not found");
+			}
+			exit(0);
+		} 
+		close(pfdfg[0]);
+		close(pfdfg[1]);
+		
+		if(input){
+			dup2(inputFile, STDIN_FILENO);
+			close(inputFile);
+		}
+		if(output){
+			dup2(outputFile, STDOUT_FILENO);
+			close(outputFile);
+		}
+		
     }
+	char arr2[1024];
+	printf("\n[quash@");
+	printf(getcwd(arr2, 1024));
+	printf("]$ ");
   }
 
   return EXIT_SUCCESS;
