@@ -88,8 +88,11 @@ clean:
 
 .PHONY: all test doc submit unsubmit testsubmit clean
 
-
-testProg: 
-	g++ testProg.c -g -o testProg
+testProg1:
+	gcc testProg1.c -g -o testProg1
 testProg2:
-	g++ testProg2.c -g -o testProg2
+	gcc testProg2.c -g -o testProg2
+pipeTest1:
+	gcc pipeTest1.c -g -o pipeTest1
+pipeTest2:
+	gcc pipeTest2.c -g -o pipeTest2

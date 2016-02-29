@@ -19,10 +19,18 @@ The "pwd" command is also simple, and uses getcwd() to print the absolute path o
 
 The "jobs" command prints out all of the current background jobs by starting at the head of the linked list of jobs and iterating through each, printing out their attributes as it goes, until it reaches the last one.
 
----> PIPE <---
+The "pipe" command is implemented by creating the "isPipe" variable that is updated depending on if a | is found in the input line. If so, the program controls the output of the initial argument to be used as the input to the second argument using a call to dup2().
 
 If the user inputs something other than the supported commands listed above, then the program assumes that they are meaning to run an executable. It forks a child, gives the child the same environment as the parent, and searches within the environment for an executable file by tokenizing the path based on "\" (backslash) characters and continuing to search folders until an executable by the given name is found. If no executable is found, then an error message is printed. It is here that, if the user used redirection commands, dup2() is used to redirect input or output.
 
 A linked list structure allows for background execution of processes. The program tracks when background processes are added, by setting a flag whenever the program forks a new child.
 
-Our program was tested by using it as one would a bash. We included two test files - testProg.c and testProg2.c - which are used for testing. testProg.c has a very long for loop that allows us to test if the program is able to run background processes correctly. This allows us to test the jobs function as well. testProg2.c takes one argument at command line and is thus able to test whether executables are able to be run with arguments in Quash. We also created .txt files for testing and piped input in or out of them, for example, by redirecting input of pwd into a.txt and observing that the output of pwd is then saved to a.txt. Other methods like "exit," "cd," and "echo" were easy to test simply by using them.
+Our program was tested by using it as one would a bash. We included several test files, testCommands.txt, testProg.c, testProg2.c, pipeTest1.c and pipeTest2.c. These test programs must be compiled outside of compiling Quash, as Quash does not include a compiler and our makefile does not compile the extra files.
+
+testProg.c has a very long for loop that allows us to test if the program is able to run background processes correctly. This allows us to test the jobs function as well. testProg2.c takes one argument at command line and is thus able to test whether executables are able to be run with arguments in Quash.
+
+pipeTest1.c outputs a 1 when it is called, and pipeTest2.c outputs a success message if the input passed into it is a 1, therefore checking if the pipe function works when ./pipeTest1 | ./pipeTest2 is used.
+
+A testCommands.txt file was created that includes commands that can be used in Quash and was used for testing whether the program was able to read input from a file. We also created .txt files for testing and piped input in or out of them, for example, by redirecting input of pwd into a.txt and observing that the output of pwd is then saved to a.txt.
+
+Other methods like "exit," "cd," and "echo" were easy to test simply by using them. 
