@@ -90,6 +90,6 @@ clean:
 
 
 testProg: 
-	gcc testProg.c -g -o testProg
+	g++ testProg.c -g -o testProg
 testProg2:
-	gcc testProg2.c -g -o testProg2
+	g++ testProg2.c -g -o testProg2
