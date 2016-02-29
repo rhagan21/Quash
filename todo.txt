@@ -1,0 +1,20 @@
+x indicates finished, / indicates partially finished but requires testing or more work
+
+=====================================
+pts // progress // task
+5        [x]      Run executables
+5        [x]      Run executables with command line parameters
+10       [x]      If executable is not specified in absolute path format (starting with /), search directories in path and output error message if no executable is found
+5        [x]      Forebround and background (&) executions
+10       [x]      Child process inheritance (inherit environment variable)
+5        [x]      Set PATH and HOME variables
+?        [x]      echo: print content of PATH and HOME
+2.5      [x]      cd to change directories (no argument changes to home directory)
+2.5      [x]      pwd: print absolute path of current working directory
+5        [x]      quit/exit
+5        [/]      jobs: Print all currently running background processes in format [JOBID] PID COMMAND
+5        [x]      I/O redirection: < to redirect standard input from file, > to redirect standard output to file
+10       [/]      pipe (|)
+?        [ ]      Reading commands interactively with a prompt or reading a set of commands stored in a file that is redirected from standard input
+5        [ ]      Background processes print a message upon termination
+10       [/]      Write report - Add stuff about testing

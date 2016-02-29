@@ -23,7 +23,6 @@
 // compilation unit (this file and all files that include it). This is similar
 // to private in other languages.
 static bool running;
-
 extern char ** environ;
 
 /**************************************************************************
@@ -129,7 +128,6 @@ int main(int argc, char** argv) {
 	pipe(pfdfg);
 	pid_t pidfg, pidbg;
 	bool backProcess;
-	bool lastBackProcess = false;
 	char* tempProcess;
 	char* nextProcess;
 	
@@ -149,7 +147,7 @@ int main(int argc, char** argv) {
 		
 		int status;
 		int childpid;
-		while (childpid = waitpid(-1, &status, WNOHANG) > 0) {
+		while ((childpid = waitpid(-1, &status, WNOHANG)) > 0) {
 			removeprocess(childpid);
 		}
 		
@@ -182,7 +180,7 @@ int main(int argc, char** argv) {
 					newProcess->pid=pidbg;
 					insert(newProcess);
 					strcpy(newProcess->command, tempProcess);
-					printf("[%s] New process %s running in background", newProcess->jobid, newProcess->pid);
+					printf("[%i] New process %i running in background", newProcess->jobid, newProcess->pid);
 					tempProcess = nextProcess;
 					continue;
 				}
@@ -202,67 +200,62 @@ int main(int argc, char** argv) {
 	printf("]$ ");
   // Main execution loop
   while (is_running() && get_command(&cmd, stdin)) {
-
     char* args[100];
-	int i = 0;
-	char* tempArg = strtok(cmd.cmdstr, " \n");
-	int numOfArgs = 0;
-	char* inputFile;
-	char* outputFile;
-	bool input = false;
-	bool output = false;
-
-
+    int i = 0;
+    char* tempArg = strtok(cmd.cmdstr, " \n");
+    int numOfArgs = 0;
+    char* inputFile = NULL;
+    char* outputFile = NULL;
+    bool input = false;
+    bool output = false;
+    while(tempArg) {
+        if (!strcmp(tempArg, "<")) {
+            inputFile = strtok(NULL, " \n");
+            tempArg = inputFile;
+            numOfArgs++;
+            i++;
+            if (inputFile == NULL) {
+                printf("No input file specified");
+                exit(0);
+            }
+        }
+        else if (!strcmp(tempArg, ">")) {
+            outputFile = strtok(NULL, " \n");
+            tempArg = outputFile;
+            numOfArgs++;
+            i++;
+            if (outputFile == NULL) {
+                printf("No output file specified");
+                exit(0);
+            }
+        }
+        else {
+            args[i++] = tempArg;
+            tempArg = strtok(NULL, " \n");
+            numOfArgs++;
+        }
+    }
 	
-	while(tempArg) {
-		if (!strcmp(tempArg, "<")) {
-			inputFile = strtok(NULL, " \n");
-			tempArg = inputFile;
-			numOfArgs++;
-			i++;
-			if (inputFile == NULL) {
-				printf("No input file specified");
-				exit(0);
-			}
-		}
-		else if (!strcmp(tempArg, ">")) {
-			outputFile = strtok(NULL, " \n");
-			tempArg = outputFile;
-			numOfArgs++;
-			i++;
-			if (outputFile == NULL) {
-				printf("No output file specified");
-				exit(0);
-			}
-		}
-		else {
-			args[i++] = tempArg;
-			tempArg = strtok(NULL, " \n");
-			numOfArgs++;
-		}
-	}
-	
-	if (inputFile != NULL) {
-		open(inputFile, O_RDONLY | O_CREAT);
-		input = true;
-		dup2(inputFile, STDIN_FILENO);
-
-	}
-	else if (outputFile != NULL) {
-		open(outputFile, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-		output = true;
-		dup2(outputFile, STDOUT_FILENO);
-	}
+    if (inputFile != NULL) {
+            open(inputFile, O_RDONLY | O_CREAT);
+            input = true;
+            dup2(*inputFile, STDIN_FILENO);
+    }
+    else if (outputFile != NULL) {
+            open(outputFile, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            output = true;
+            dup2(*outputFile, STDOUT_FILENO);
+    }
 	
     // The commands should be parsed, then executed.
     if (!strcmp(args[0], "exit") || !strcmp(args[0], "quit")) {
 	  puts("\nBye!");
-      terminate(); // Exit Quash
+          terminate(); // Exit Quash
     }
     else if (!strcmp(args[0], "set")) {
         char* tokenizer = strtok(args[1], "=");
         char* dirToSet = getenv(tokenizer);
-	    strcpy(dirToSet,strtok(NULL, "="));
+        strcpy(dirToSet,strtok(NULL, "="));
       //run set command which sets the value of a variable. Quash should support (at least)
       //two built-in variables: PATH and HOME. PATH is used to record the paths to search
       //for executables, while HOME points the user's home directory. PATH may contain multiple
@@ -308,6 +301,12 @@ int main(int argc, char** argv) {
       //where JOBID is a unique positive integer quash assigns to the job to identify it, PID is the
       //PID of the child process used for the job, and COMMAND is the command used to invoke the job
       //Ex: $ program 1 & $ program 2 & $ jobs [1] 2342 program1 [2] 2343 program2
+        struct linkedList * temp;
+        temp = listHead;
+        while(temp!=NULL){
+            printf("[%i] %i %s", temp->jobid, temp->pid, temp->command);
+            temp=temp->next;
+        }
     }
     //Need to implement I/O redirection. The '<' character is used to redirect the standard
     //input from a file. The '>' character is used to redirect the standard output to a file. Ex:
@@ -344,7 +343,7 @@ int main(int argc, char** argv) {
 				tempPath = strtok(NULL, "\"");
 			}
 			if(done == 0) {
-				printf("Error!! File not found");
+				printf("Error!! File not found\n");
 			}
 			exit(0);
 		} 
@@ -352,12 +351,12 @@ int main(int argc, char** argv) {
 		close(pfdfg[1]);
 		
 		if(input){
-			dup2(inputFile, STDIN_FILENO);
-			close(inputFile);
+			dup2(*inputFile, STDIN_FILENO);
+			close(*inputFile);
 		}
 		if(output){
-			dup2(outputFile, STDOUT_FILENO);
-			close(outputFile);
+			dup2(*outputFile, STDOUT_FILENO);
+			close(*outputFile);
 		}
 		
     }
