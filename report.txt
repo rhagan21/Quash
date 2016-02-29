@@ -17,10 +17,12 @@ The "echo" command works similarly to "cd" except for that it prints the environ
 
 The "pwd" command is also simple, and uses getcwd() to print the absolute path of the current working directory.
 
----> JOBS <---
+The "jobs" command prints out all of the current background jobs by starting at the head of the linked list of jobs and iterating through each, printing out their attributes as it goes, until it reaches the last one.
 
 ---> PIPE <---
 
-If the user inputs something other than the supported commands listed above, then the program assumes that they are meaning to run an executable. It forks a child, gives the child the same environment as the parent, and searches within the environment for an executable file by tokenizing the path based on \ characters and continuing to search folders until an executable by the given name is found. If no executable is found, then an error message is printed. It is here that, if the user used redirection commands, dup2() is used to redirect input or output.
+If the user inputs something other than the supported commands listed above, then the program assumes that they are meaning to run an executable. It forks a child, gives the child the same environment as the parent, and searches within the environment for an executable file by tokenizing the path based on "\" (backslash) characters and continuing to search folders until an executable by the given name is found. If no executable is found, then an error message is printed. It is here that, if the user used redirection commands, dup2() is used to redirect input or output.
 
 A linked list structure allows for background execution of processes. The program tracks when background processes are added, by setting a flag whenever the program forks a new child.
+
+Our program was tested by using it as one would a bash. We included two test files - testProg.c and testProg2.c - which are used for testing. testProg.c has a very long for loop that allows us to test if the program is able to run background processes correctly. This allows us to test the jobs function as well. testProg2.c takes one argument at command line and is thus able to test whether executables are able to be run with arguments in Quash. We also created .txt files for testing and piped input in or out of them, for example, by redirecting input of pwd into a.txt and observing that the output of pwd is then saved to a.txt. Other methods like "exit," "cd," and "echo" were easy to test simply by using them.
