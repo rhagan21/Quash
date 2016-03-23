@@ -1,3 +1,9 @@
+/**
+ * @file pipeTest2.c
+ *
+ * Second pipe test
+ */
+
 #include <stdio.h>
 int main(int argc,char *argv[])
 {

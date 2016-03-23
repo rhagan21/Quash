@@ -41,6 +41,13 @@ typedef struct command_t {
   // Extend with more fields if needed
 } command_t;
 
+extern char ** environ;
+//extern int jobidvar;
+//extern int pfdbg[2];
+//extern bool backprocess;
+//extern pid_t pidfg;
+//extern pid_t pidbg;
+
 /**
  * Query if quash should accept more input or not.
  *
@@ -63,10 +70,9 @@ void terminate();
  *  @return True if able to fill #command_t.cmdstr and false otherwise
  */
 bool get_command(command_t* cmd, FILE* in);
-void set(char* var1, char* var2);
-char* getParameter(command_t * cmd);
-char* firstParam;
-char* PATH;
-char* HOME;
+//void set(char* var1, char* var2);
+//char* getParameter(command_t * cmd);
+//char* firstParam;
+//void printJobs();
 
 #endif // QUASH_H

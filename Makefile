@@ -1,7 +1,7 @@
 STUDENTID = 2481899
 PROGNAME = quash
 
-CC = gcc --std=c99
+CC = gcc --std=gnu99
 CFLAGS = -Wall -g -Og
 
 
@@ -15,9 +15,10 @@ CFLAGS = -Wall -g -Og
 # .c and all files in `HFILES` end in .h
 CFILES = quash.c
 HFILES = quash.h debug.h
-
 # Add libraries that need linked as needed (e.g. -lm -lpthread)
 LIBS =
+
+EXTRACT_PRIVATE = YES
 
 DOXYGENCONF = quash.doxygen
 
@@ -88,11 +89,13 @@ clean:
 
 .PHONY: all test doc submit unsubmit testsubmit clean
 
-testProg1:
-	gcc testProg1.c -g -o testProg1
-testProg2:
+makeTests:
+	gcc testProg.c -g -o testProg
 	gcc testProg2.c -g -o testProg2
-pipeTest1:
 	gcc pipeTest1.c -g -o pipeTest1
-pipeTest2:
 	gcc pipeTest2.c -g -o pipeTest2
+cleanTests:
+	-rm -rf testProg
+	-rm -rf testProg2
+	-rm -rf pipeTest1
+	-rm -rf pipeTest2

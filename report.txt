@@ -5,11 +5,11 @@ Quash
 
 Our Quash program is able to handle many of the basic tasks that any bash or command shell can handle.
 
-When commands are input into Quash, it uses strtok() to tokenize them into parseable statements. Because of this, it does rely on spaces between arguments (for example, ./quash & would start quash to run in the background, but ./quash& would not), which follows the writeup for the assignment but does not follow exactly how bash would work. When receiving new commands, the program enters a while loop in order to populate a queue with the tokens it must run later. In the while loop, the program first checks if a redirection character is present (< or >). If so, it must update the tempArg variable in order to change its behavior later on. If not, it simply stores the arguiments. It then enters a large if/else block that parses and executes commands. 
+When commands are input into Quash, it uses strtok() to tokenize them into parseable statements. Because of this, it does rely on spaces between arguments (for example, ./quash < testCommands.txt would start quas with testCommands' contents taken as input, but ./quash<testCommands.txt would not), which follows the writeup for the assignment but does not follow exactly how bash would work. When receiving new commands, the program enters a while loop in order to populate a queue with the tokens it must run later. In the while loop, the program first checks if a redirection character is present (< or >). If so, it must update the tempArg variable in order to change its behavior later on. If not, it simply stores the arguiments. It then enters a large if/else block that parses and executes commands. 
 
 Given "exit" or "quit," the program will terminate.
 
-Given "set," the program will copy the environment of the first variable into the second variable, effectively setting the variable as equal to the variable.
+Given "set," the program will copy the environment of the first variable into the second variable, effectively setting the variable as equal to the value passed in.
 
 Given "cd," the program will check for the number of arguments in order to differentiate between, for example, "cd" and "cd /EECS_678/". If only one argument (cd) is given, the program will use chdir() and getenv("HOME") to change the directory to that of HOME. If there are two arguments, the program will simply change the directory to whatever the user input as their second argument.
 
@@ -21,7 +21,7 @@ The "jobs" command prints out all of the current background jobs by starting at 
 
 The "pipe" command is implemented by creating the "isPipe" variable that is updated depending on if a | is found in the input line. If so, the program controls the output of the initial argument to be used as the input to the second argument using a call to dup2().
 
-If the user inputs something other than the supported commands listed above, then the program assumes that they are meaning to run an executable. It forks a child, gives the child the same environment as the parent, and searches within the environment for an executable file by tokenizing the path based on "\" (backslash) characters and continuing to search folders until an executable by the given name is found. If no executable is found, then an error message is printed. It is here that, if the user used redirection commands, dup2() is used to redirect input or output.
+If the user inputs something other than the supported commands listed above, then the program assumes that they are meaning to run an executable. It forks a child, gives the child the same environment as the parent, and searches within the environment for an executable file by tokenizing the path based on "/" characters and continuing to search folders until an executable by the given name is found. In this way, it can run executables given with absolute paths starting with / or that are located within the path and given as ./program_name. If no executable is found, then an error message is printed. It is here that, if the user used redirection commands, dup2() is used to redirect input or output.
 
 A linked list structure allows for background execution of processes. The program tracks when background processes are added, by setting a flag whenever the program forks a new child.
 

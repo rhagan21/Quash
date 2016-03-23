@@ -1,15 +1,11 @@
 ./testProg2 testing1
 ./testProg2 testing2
-cd
-pwd > a.txt
-cd EECS_678
-pwd > a.txt
-cd Quash
-pwd > a.txt
 ./testProg &
 ./testProg &
 ./testProg &
-jobs
-./quash
-quit
-exit
+./testProg &
+./testProg &
+./testProg &
+./testProg &
+./testProg &
+./testProg &
